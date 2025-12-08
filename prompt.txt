@@ -1,0 +1,12 @@
+I want two type of users, one is based on local authentication and another one is based on SSO authentication, 
+The user should choose which type of login he want to use in login screen and the application should login based on that. 
+Admin user should login using local authentication and should configure SSO authentication using SAML, 
+
+Admin user should have the following features:  Add these features to admin user in left navigation bar.
+1. Configure SSO
+2. Configure new user.
+3. create and store secrets.
+
+Once the admin user configure SSO, then normal user should be able to login using SSO
+
+Can you modify this app and redeploy. Force the user UI to clear the cache.

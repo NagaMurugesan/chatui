@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  frontend:
+    build: ./frontend
+    ports:
+      - "4200:80"
+    depends_on:
+      - backend
+
+  backend:
+    build: ./backend
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - AWS_REGION=us-east-1
+      - DYNAMODB_ENDPOINT=http://dynamodb-local:8000
+      - TABLE_CHATS=ChatSessions
+      - TABLE_MESSAGES=ChatMessages
+      - TABLE_USERS=Users
+      - JWT_SECRET=local_secret
+      - OLLAMA_HOST=http://host.docker.internal:11434
+      - OLLAMA_MODEL=llama3
+    depends_on:
+      - dynamodb-local
+    volumes:
+      - ./backend/src:/app/src
+
+  dynamodb-local:
+    image: amazon/dynamodb-local
+    ports:
+      - "8000:8000"
+    command: "-jar DynamoDBLocal.jar -sharedDb -dbPath ."
+    volumes:
+      - dynamodb_data:/home/dynamodblocal
+
+  dynamodb-admin:
+    image: aaronshaf/dynamodb-admin
+    ports:
+      - "8001:8001"
+    environment:
+      - DYNAMO_ENDPOINT=http://dynamodb-local:8000
+      - AWS_REGION=us-east-1
+    depends_on:
+      - dynamodb-local
+
+volumes:
+  dynamodb_data:

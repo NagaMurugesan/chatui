@@ -1,0 +1,9 @@
+<div class="flex w-full mb-6"
+    [ngClass]="{'justify-end': message.role === 'user', 'justify-start': message.role === 'assistant'}">
+    <div class="max-w-[80%] rounded-lg px-4 py-3" [ngClass]="{
+         'bg-blue-600 text-white': message.role === 'user',
+         'bg-gray-100 text-gray-800': message.role === 'assistant'
+       }">
+        <div class="text-sm whitespace-pre-wrap">{{ message.content }}</div>
+    </div>
+</div>
