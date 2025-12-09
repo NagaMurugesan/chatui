@@ -47,8 +47,6 @@ router.post('/sso-metadata', async (req, res) => {
 
         const response = await axios.get(url);
         const xmlData = response.data;
-        const response = await axios.get(url);
-        const xmlData = response.data;
 
         const parser = new XMLParser({
             ignoreAttributes: false,
