@@ -1,0 +1,45 @@
+{
+    "realm": "gravity-realm",
+    "enabled": true,
+    "users": [
+        {
+            "username": "test@example.com",
+            "enabled": true,
+            "email": "test@example.com",
+            "firstName": "Test",
+            "lastName": "User",
+            "credentials": [
+                {
+                    "type": "password",
+                    "value": "password",
+                    "temporary": false
+                }
+            ],
+            "realmRoles": [
+                "default-roles-gravity-realm"
+            ]
+        }
+    ],
+    "clients": [
+        {
+            "clientId": "gravity-chat",
+            "enabled": true,
+            "protocol": "saml",
+            "redirectUris": [
+                "http://localhost:3000/auth/sso/callback"
+            ],
+            "attributes": {
+                "saml.authnstatement": "true",
+                "saml.server.signature": "true",
+                "saml_force_name_id_format": "true",
+                "saml.server.signature.keyinfo.ext": "false",
+                "saml.assertion.signature": "true",
+                "saml.client.signature": "false",
+                "saml_name_id_format": "email"
+            },
+            "defaultClientScopes": [
+                "role_list"
+            ]
+        }
+    ]
+}

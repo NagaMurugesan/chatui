@@ -10,3 +10,20 @@ Admin user should have the following features:  Add these features to admin user
 Once the admin user configure SSO, then normal user should be able to login using SSO
 
 Can you modify this app and redeploy. Force the user UI to clear the cache.
+
+I want to build a python based MCP Server, MCP Tool and MCP Client. 
+The LLMService should not invoke the llama api directly. It should use the MCP Server to invoke the llama api.
+The UI should pass the user prompt to MCP server. MCP server should use the llama model to identify the contect and call the right tool.
+MCP Server should have the following features.
+
+The UI should invoke the MCP Server and MCP Server should invoke the MCP Tool and MCP Tool should invoke the MCP resources.
+Build the following mcp tool to connect to mcp resources
+
+1) mcp tool to connect to postgresql database
+2) mcp tool to connect to ollama and invoke the llama api
+
+
+
+Can you configure open source Keycloak  as iDp in my local laptop and 
+then use Keycloak to act as a iDP provider, configure a test@example.com user in iDP , import the metadata using SAML SSO configuration using Admin Accessing
+and test the SSO authentication feature in this app.. 

@@ -37,8 +37,8 @@ export class AuthService {
       );
   }
 
-  ssoLogin(): Observable<any> {
-    return this.http.post(`${this.apiUrl}/sso/login`, {});
+  ssoLogin(email: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/sso/login`, { email });
   }
 
   logout() {

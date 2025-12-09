@@ -47,16 +47,14 @@ router.post('/sso-metadata', async (req, res) => {
 
         const response = await axios.get(url);
         const xmlData = response.data;
+        const response = await axios.get(url);
+        const xmlData = response.data;
 
         const parser = new XMLParser({
             ignoreAttributes: false,
             attributeNamePrefix: "@_"
         });
         const jsonObj = parser.parse(xmlData);
-
-        // Navigate the JSON structure to find EntityDescriptor
-        // Note: Structure might vary slightly depending on namespaces, but usually root is EntityDescriptor
-        // We'll try to find keys ending with EntityDescriptor
 
         const findKey = (obj: any, keySuffix: string): any => {
             for (const key in obj) {
@@ -67,13 +65,16 @@ router.post('/sso-metadata', async (req, res) => {
 
         const entityDescriptor = findKey(jsonObj, 'EntityDescriptor');
         if (!entityDescriptor) {
+            console.error('EntityDescriptor not found');
             return res.status(400).json({ error: 'Invalid Metadata XML: EntityDescriptor not found' });
         }
 
         const issuer = entityDescriptor['@_entityID'];
+        console.log('Issuer:', issuer);
 
         const idpDescriptor = findKey(entityDescriptor, 'IDPSSODescriptor');
         if (!idpDescriptor) {
+            console.error('IDPSSODescriptor not found');
             return res.status(400).json({ error: 'Invalid Metadata XML: IDPSSODescriptor not found' });
         }
 
@@ -89,6 +90,7 @@ router.post('/sso-metadata', async (req, res) => {
                 entryPoint = ssoService['@_Location'];
             }
         }
+        console.log('EntryPoint:', entryPoint);
 
         // Find Certificate
         // Usually in KeyDescriptor -> KeyInfo -> X509Data -> X509Certificate
@@ -118,6 +120,7 @@ router.post('/sso-metadata', async (req, res) => {
         } else if (keyDescriptors) {
             cert = extractCert(keyDescriptors);
         }
+        console.log('Extracted Cert:', cert);
 
         res.json({
             entryPoint,
@@ -135,7 +138,10 @@ router.post('/sso-metadata', async (req, res) => {
 router.post('/sso-config', async (req, res) => {
     try {
         const { entryPoint, issuer, cert } = req.body;
+        console.log('Received SSO Config Save Request:', { entryPoint, issuer, certLength: cert ? cert.length : 0 });
+
         if (!entryPoint || !issuer || !cert) {
+            console.error('Missing SSO configuration fields');
             return res.status(400).json({ error: 'Missing SSO configuration fields' });
         }
 
@@ -157,7 +163,9 @@ router.post('/sso-config', async (req, res) => {
             }
         };
 
+        console.log('Saving to DynamoDB:', JSON.stringify(params, null, 2));
         await dynamoDb.client.send(new dynamoDb.PutCommand(params));
+        console.log('Saved successfully');
         res.json({ message: 'SSO configuration saved', id });
     } catch (error) {
         console.error('Save SSO config error:', error);

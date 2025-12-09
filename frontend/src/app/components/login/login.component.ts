@@ -1,8 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-login',
@@ -11,7 +11,7 @@ import { Router } from '@angular/router';
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css']
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   email = '';
   password = '';
   firstName = '';
@@ -22,7 +22,30 @@ export class LoginComponent {
   errorMessage = '';
   successMessage = '';
 
-  constructor(private authService: AuthService, private router: Router) { }
+  constructor(
+    private authService: AuthService,
+    private router: Router,
+    private route: ActivatedRoute
+  ) { }
+
+  ngOnInit() {
+    // Check for SSO callback params
+    this.route.queryParams.subscribe(params => {
+      const token = params['token'];
+      if (token) {
+        const userId = params['userId'];
+        const name = params['name'];
+        const role = params['role'];
+
+        localStorage.setItem('auth_token', token);
+        localStorage.setItem('user_id', userId);
+        localStorage.setItem('user_name', name);
+        localStorage.setItem('user_role', role);
+
+        this.router.navigate(['/chat']);
+      }
+    });
+  }
 
   toggleMode() {
     this.isLogin = !this.isLogin;
@@ -53,13 +76,17 @@ export class LoginComponent {
 
   onSSOLogin() {
     this.errorMessage = '';
-    this.authService.ssoLogin().subscribe({
+    if (!this.email) {
+      this.errorMessage = 'Please enter your email';
+      return;
+    }
+    this.authService.ssoLogin(this.email).subscribe({
       next: (res: any) => {
         if (res.ssoUrl) {
           window.location.href = res.ssoUrl;
         }
       },
-      error: (err) => this.errorMessage = 'SSO Login failed'
+      error: (err) => this.errorMessage = err.error.error || 'SSO Login failed'
     });
   }
 

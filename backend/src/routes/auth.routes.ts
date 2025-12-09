@@ -257,36 +257,79 @@ router.put('/change-password', async (req, res) => {
 
 import { SAML } from '@node-saml/node-saml';
 
-// Helper to get SAML instance
+// Helper to get SAML instance with active config
 const getSaml = async () => {
-    // Fetch active configuration
-    const scanParams = {
+    const params = {
         TableName: TABLE_SSO_CONFIG,
         FilterExpression: 'isActive = :active',
         ExpressionAttributeValues: { ':active': true }
     };
-    const configResult = await dynamoDb.client.send(new dynamoDb.ScanCommand(scanParams));
-    const config = configResult.Items && configResult.Items.length > 0 ? configResult.Items[0] : null;
 
-    if (!config || !config.entryPoint || !config.issuer || !config.cert) {
-        throw new Error('SSO not configured');
+    const result = await dynamoDb.client.send(new dynamoDb.ScanCommand(params));
+    const config = result.Items ? result.Items[0] : null;
+
+    if (!config) {
+        throw new Error('No active SSO configuration found');
     }
+
+    console.log('getSaml: Using config:', {
+        id: config.id,
+        issuer: config.issuer,
+        entryPoint: config.entryPoint,
+        certLength: config.cert ? config.cert.length : 0
+    });
+
+    if (!config.cert) {
+        throw new Error('Active SSO configuration is missing certificate');
+    }
+
+    // Fix for local docker environment: Replace internal hostname with localhost for browser redirect
+    // This ensures the 'Destination' attribute in the SAML request matches the browser URL
+    const entryPoint = config.entryPoint.replace('keycloak:8080', 'localhost:8080');
 
     return new SAML({
         callbackUrl: 'http://localhost:3000/auth/sso/callback',
-        entryPoint: config.entryPoint,
-        issuer: config.issuer,
-        cert: config.cert,
-        wantAssertionsSigned: false,
-        authnContext: ['urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport'],
+        entryPoint: entryPoint,
+        issuer: 'gravity-chat', // SP Entity ID
+        idpCert: config.cert, // IdP Public Key
+        wantAssertionsSigned: false, // For dev/keycloak
+        authnRequestBinding: 'HTTP-Redirect',
+        signatureAlgorithm: 'sha256',
+        digestAlgorithm: 'sha256'
     } as any);
 };
 
-// SSO Login
+// SSO Login - Initiate SAML Flow
 router.post('/sso/login', async (req, res) => {
     try {
+        const { email } = req.body;
+        if (!email) {
+            return res.status(400).json({ error: 'Email is required for SSO login' });
+        }
+
+        // 1. Validate User Exists and is SSO
+        const getParams = {
+            TableName: TABLE_USERS,
+            Key: { email }
+        };
+        const userResult = await dynamoDb.client.send(new dynamoDb.GetCommand(getParams));
+        const user = userResult.Item;
+
+        if (!user) {
+            return res.status(404).json({ error: 'User not found. Please contact your administrator.' });
+        }
+
+        if (user.authType !== 'sso') {
+            return res.status(400).json({ error: 'This account is configured for password login. Please use the "Login" tab.' });
+        }
+
+        // 2. Get SAML URL
         const saml = await getSaml();
         const loginUrl = await saml.getAuthorizeUrlAsync("", "", {});
+
+        console.log('SSO Login Request Body:', req.body);
+        console.log('Generated SSO URL:', loginUrl);
+
         res.json({ ssoUrl: loginUrl });
     } catch (error: any) {
         console.error('SSO login error:', error);
