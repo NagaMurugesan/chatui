@@ -135,6 +135,37 @@ export class ChatWindowComponent implements OnInit, AfterViewChecked {
     (event.target as HTMLInputElement).blur();
   }
 
+  deleteChat(chatId: string) {
+    // TODO: Add backend API call to delete chat
+    // For now, just remove from local list
+    this.chats = this.chats.filter(c => c.chatId !== chatId);
+
+    // If deleted chat was selected, select another or create new
+    if (this.selectedChatId === chatId) {
+      if (this.chats.length > 0) {
+        this.selectChat(this.chats[0].chatId);
+      } else {
+        this.createNewChat();
+      }
+    }
+  }
+
+  renameChat(event: { chatId: string, newTitle: string }) {
+    this.chatService.updateChatTitle(event.chatId, event.newTitle).subscribe({
+      next: (updatedChat) => {
+        // Update local state
+        const index = this.chats.findIndex(c => c.chatId === event.chatId);
+        if (index !== -1) {
+          this.chats[index] = updatedChat;
+        }
+        if (this.selectedChat && this.selectedChat.chatId === event.chatId) {
+          this.selectedChat.title = updatedChat.title;
+        }
+      },
+      error: (err) => console.error('Failed to rename chat:', err)
+    });
+  }
+
   logout() {
     this.authService.logout();
   }
