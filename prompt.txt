@@ -27,3 +27,9 @@ Build the following mcp tool to connect to mcp resources
 Can you configure open source Keycloak  as iDp in my local laptop and 
 then use Keycloak to act as a iDP provider, configure a test@example.com user in iDP , import the metadata using SAML SSO configuration using Admin Accessing
 and test the SSO authentication feature in this app.. 
+
+
+I have a developed a genAI application to help Data team. This agent will address all the questions related to data, The agent can interact with Analytics database and generate report, drill down down to detailed report with insights
+The agent also interact with data governance tools such as Collibra to answer questions related to data element, lineage, reference data. The agent also can interact with RAG based knowledge base to answer all the data related technical documentation.
+
+I want to post a linked in post explaining this features. Can you prepare a linked in post.

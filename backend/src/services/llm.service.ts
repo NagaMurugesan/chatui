@@ -6,9 +6,9 @@ export interface Message {
 export class LLMService {
     private mcpHost = process.env.MCP_HOST || 'http://mcp-server:8000';
 
-    async generateResponse(history: Message[], userMessage: string): Promise<string> {
+    async generateResponse(history: Message[], userMessage: string, model: string = 'llama3'): Promise<string> {
         try {
-            console.log(`Sending request to MCP Server at ${this.mcpHost}...`);
+            console.log(`Sending request to MCP Server at ${this.mcpHost} with model: ${model}...`);
 
             const response = await fetch(`${this.mcpHost}/prompt`, {
                 method: 'POST',
@@ -19,7 +19,8 @@ export class LLMService {
                     messages: [
                         ...history,
                         { role: 'user', content: userMessage }
-                    ]
+                    ],
+                    model: model
                 }),
             });
 

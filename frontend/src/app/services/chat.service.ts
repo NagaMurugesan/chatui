@@ -43,10 +43,14 @@ export class ChatService {
     return this.http.get<Message[]>(`${this.apiUrl}/${chatId}`, { headers: this.getHeaders() });
   }
 
-  sendMessage(chatId: string, content: string): Observable<{ userMessage: Message, assistantMessage: Message }> {
+  sendMessage(chatId: string, content: string, model?: string): Observable<{ userMessage: Message, assistantMessage: Message }> {
+    const payload: any = { content };
+    if (model) {
+      payload.model = model;
+    }
     return this.http.post<{ userMessage: Message, assistantMessage: Message }>(
       `${this.apiUrl}/${chatId}/message`,
-      { content },
+      payload,
       { headers: this.getHeaders() }
     );
   }

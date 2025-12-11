@@ -85,13 +85,14 @@ router.get('/:chatId', authenticateToken, async (req: AuthRequest, res) => {
 router.post('/:chatId/message', authenticateToken, async (req: AuthRequest, res) => {
     try {
         const { chatId } = req.params;
-        const { content } = req.body;
+        const { content, model } = req.body;
         const userId = req.user!.userId;
 
         if (!content) {
             return res.status(400).json({ error: 'Content is required' });
         }
 
+        const selectedModel = model || 'llama3'; // Default to llama3 if not specified
         const timestamp = new Date().toISOString();
 
         // 1. Save User Message
@@ -111,8 +112,8 @@ router.post('/:chatId/message', authenticateToken, async (req: AuthRequest, res)
         // For simplicity, we'll just send the current message to the mock LLM
         // In production, you'd fetch the last N messages
 
-        // 3. Call LLM
-        const assistantResponse = await llmService.generateResponse([], content);
+        // 3. Call LLM with selected model
+        const assistantResponse = await llmService.generateResponse([], content, selectedModel);
         const assistantTimestamp = new Date(Date.now() + 100).toISOString(); // Ensure it's slightly after
 
         // 4. Save Assistant Message

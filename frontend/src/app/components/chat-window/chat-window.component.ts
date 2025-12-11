@@ -21,6 +21,13 @@ export class ChatWindowComponent implements OnInit, AfterViewChecked {
   newMessage = '';
   isLoading = false;
   userName: string | null = null;
+  selectedModel = 'mistral-nemo';
+  availableModels = [
+    { value: 'mistral-nemo', label: 'Mistral NeMo' },
+    { value: 'gemma2:9b', label: 'Gemma 2 9B' },
+    { value: 'llama3.2', label: 'Llama 3.2' },
+    { value: 'llama3', label: 'Llama 3' }
+  ];
 
   @ViewChild('scrollContainer') private scrollContainer!: ElementRef;
 
@@ -108,7 +115,7 @@ export class ChatWindowComponent implements OnInit, AfterViewChecked {
     };
     this.messages.push(tempUserMessage);
 
-    this.chatService.sendMessage(this.selectedChatId, content).subscribe({
+    this.chatService.sendMessage(this.selectedChatId, content, this.selectedModel).subscribe({
       next: (response) => {
         // Replace temp message or just append assistant message
         // Here we just append assistant message since we pushed user message

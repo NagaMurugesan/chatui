@@ -21,6 +21,7 @@ class PromptRequest(BaseModel):
 async def process_prompt(request: PromptRequest):
     try:
         user_message = request.messages[-1]['content']
+        print(f"Received request with model: {request.model}")
         
         # Simple Agent Logic:
         # 1. Ask Llama to classify intent
@@ -37,14 +38,14 @@ async def process_prompt(request: PromptRequest):
         Reply ONLY with "POSTGRES" or "OLLAMA".
         """
         
-        intent = ollama_tool.generate_response(classification_prompt).strip().upper()
-        print(f"Intent detected: {intent}")
+        intent = ollama_tool.generate_response(classification_prompt, request.model).strip().upper()
+        print(f"Intent detected: {intent}, using model: {request.model}")
 
         if "POSTGRES" in intent:
             # If Postgres, we might need to generate SQL first or just pass the query
             # For this demo, let's ask Llama to generate SQL, then execute it
             sql_prompt = f"Generate a valid SQL query for the following request. Reply ONLY with the SQL query, no markdown. Request: {user_message}"
-            sql_query = ollama_tool.generate_response(sql_prompt).strip()
+            sql_query = ollama_tool.generate_response(sql_prompt, request.model).strip()
             # Clean up SQL (remove markdown code blocks if any)
             sql_query = sql_query.replace("```sql", "").replace("```", "").strip()
             
@@ -54,7 +55,7 @@ async def process_prompt(request: PromptRequest):
             
         else:
             # Default to Ollama Chat
-            response = ollama_tool.chat(request.messages)
+            response = ollama_tool.chat(request.messages, request.model)
             return {"content": response}
 
     except Exception as e:

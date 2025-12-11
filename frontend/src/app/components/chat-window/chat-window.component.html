@@ -15,8 +15,20 @@
                     placeholder="Chat Title" />
                 <h1 *ngIf="!selectedChat" class="text-lg font-semibold text-gray-700">Gravity Chat</h1>
             </div>
-            <div class="text-sm text-gray-500" *ngIf="userName">
-                Logged in as: <span class="font-medium text-gray-800">{{ userName }}</span>
+            <div class="flex items-center gap-4">
+                <!-- Model Selector -->
+                <div class="flex items-center gap-2">
+                    <label class="text-sm font-medium text-gray-700">Model:</label>
+                    <select [(ngModel)]="selectedModel"
+                        class="text-sm border border-gray-300 rounded px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                        <option *ngFor="let model of availableModels" [value]="model.value">
+                            {{ model.label }}
+                        </option>
+                    </select>
+                </div>
+                <div class="text-sm text-gray-500" *ngIf="userName">
+                    Logged in as: <span class="font-medium text-gray-800">{{ userName }}</span>
+                </div>
             </div>
         </div>
 

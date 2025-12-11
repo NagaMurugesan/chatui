@@ -18,7 +18,7 @@ export class LoginComponent implements OnInit {
   lastName = '';
   isLogin = true;
   isForgotPassword = false;
-  authType: 'local' | 'sso' = 'local';
+  authType: 'local' | 'sso' = 'sso';
   errorMessage = '';
   successMessage = '';
 

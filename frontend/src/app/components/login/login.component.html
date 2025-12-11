@@ -2,18 +2,21 @@
   <div class="bg-white p-8 rounded shadow-md w-full max-w-md">
     <h2 class="text-2xl font-bold mb-6 text-center text-gray-800">Gravity Chat</h2>
 
-    <!-- Tabs -->
-    <div class="flex border-b mb-6">
-      <button (click)="authType = 'local'" [class.border-blue-500]="authType === 'local'"
-        [class.text-blue-600]="authType === 'local'"
-        class="w-1/2 py-2 text-center font-medium text-gray-600 border-b-2 border-transparent hover:text-blue-500 focus:outline-none">
-        Local Login
-      </button>
-      <button (click)="authType = 'sso'" [class.border-blue-500]="authType === 'sso'"
-        [class.text-blue-600]="authType === 'sso'"
-        class="w-1/2 py-2 text-center font-medium text-gray-600 border-b-2 border-transparent hover:text-blue-500 focus:outline-none">
-        SSO Login
-      </button>
+    <!-- Login Type Selector -->
+    <div class="mb-6">
+      <label class="block text-gray-700 text-sm font-bold mb-2">Login Method</label>
+      <div class="relative">
+        <select [(ngModel)]="authType"
+          class="block appearance-none w-full bg-white border border-gray-400 hover:border-gray-500 px-4 py-2 pr-8 rounded shadow leading-tight focus:outline-none focus:shadow-outline">
+          <option value="sso">SSO Login</option>
+          <option value="local">Local Login</option>
+        </select>
+        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+          <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+            <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+          </svg>
+        </div>
+      </div>
     </div>
 
     <!-- Local Login Form -->
