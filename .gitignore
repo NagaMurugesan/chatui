@@ -11,3 +11,10 @@ yarn-debug.log*
 yarn-error.log*
 .agent
 .gemini
+
+# Farming documents - exclude PDFs but keep directory
+mcp-server/data/farming_docs/*.pdf
+
+# Python
+__pycache__/
+*.pyc

@@ -33,3 +33,10 @@ I have a developed a genAI application to help Data team. This agent will addres
 The agent also interact with data governance tools such as Collibra to answer questions related to data element, lineage, reference data. The agent also can interact with RAG based knowledge base to answer all the data related technical documentation.
 
 I want to post a linked in post explaining this features. Can you prepare a linked in post.
+
+Can you prepare a python based RAG application to answer all the data related to farming document that I have in my local laptop.
+Use postgresql database as a vector database and mistral as LLM. Use MCP Server and tool to forward all the farming related questing from UI to this RAG agent.
+
+Build a python based pipeline to ingest the pdf document into postgresql vector database. Use better embedding model to generate the embeddings.
+You can download and configure the embedding model in my mac laptop.
+

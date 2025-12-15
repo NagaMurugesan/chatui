@@ -6,12 +6,14 @@ import requests
 import json
 from tools.postgres_tool import PostgresTool
 from tools.ollama_tool import OllamaTool
+from tools.rag_tool import RAGTool
 
 app = FastAPI()
 
 # Initialize Tools
 postgres_tool = PostgresTool()
 ollama_tool = OllamaTool()
+rag_tool = RAGTool()
 
 class PromptRequest(BaseModel):
     messages: List[dict]
@@ -31,17 +33,24 @@ async def process_prompt(request: PromptRequest):
         You are an AI assistant router. Analyze the following user request and decide which tool to use.
         Available tools:
         1. POSTGRES: Use this for database queries, checking users, or SQL related tasks.
-        2. OLLAMA: Use this for general chat, coding questions, or anything not related to the database.
+        2. FARMING: Use this for questions about farming, agriculture, crops, livestock, or farming practices.
+        3. OLLAMA: Use this for general chat, coding questions, or anything not related to database or farming.
         
         User Request: "{user_message}"
         
-        Reply ONLY with "POSTGRES" or "OLLAMA".
+        Reply ONLY with "POSTGRES", "FARMING", or "OLLAMA".
         """
         
         intent = ollama_tool.generate_response(classification_prompt, request.model).strip().upper()
         print(f"Intent detected: {intent}, using model: {request.model}")
 
-        if "POSTGRES" in intent:
+        if "FARMING" in intent:
+            # Route to RAG tool for farming questions
+            print(f"[MCP Server] Routing to RAG tool for farming query")
+            result = rag_tool.generate_answer(user_message, model=request.model)
+            return {"content": result['answer']}
+        
+        elif "POSTGRES" in intent:
             # If Postgres, we might need to generate SQL first or just pass the query
             # For this demo, let's ask Llama to generate SQL, then execute it
             sql_prompt = f"Generate a valid SQL query for the following request. Reply ONLY with the SQL query, no markdown. Request: {user_message}"
@@ -59,9 +68,9 @@ async def process_prompt(request: PromptRequest):
             return {"content": response}
 
     except Exception as e:
-        print(f"Error processing prompt: {e}")
+        print(f"Error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/health")
-def health_check():
+async def health():
     return {"status": "ok"}
