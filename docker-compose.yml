@@ -23,6 +23,7 @@ chmod +x $DOCKER_CONFIG/docker-compose
 curl -SL https://github.com/docker/buildx/releases/download/v0.11.2/buildx-v0.11.2.linux-amd64 -o $DOCKER_CONFIG/docker-buildx
 chmod +x $DOCKER_CONFIG/docker-buildx
 
+
 # 3. Nvidia Container Toolkit
 # Configure the repository for Amazon Linux 2023 (RHEL compatible)
 curl -s -L https://nvidia.github.io/libnvidia-container/stable/rpm/nvidia-container-toolkit.repo | \
