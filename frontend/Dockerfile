@@ -13,10 +13,13 @@ COPY . .
 RUN npm run build
 
 # Replace placeholder with actual API URL in built files
-RUN find /app/dist -type f \( -name "*.js" -o -name "*.html" \) -exec sed -i "s|\${API_URL}|${API_URL}|g" {} +
+# Alpine Linux compatible version
+RUN find /app/dist -type f \( -name "*.js" -o -name "*.html" \) -exec sh -c 'sed "s|\${API_URL}|'"${API_URL}"'|g" "$1" > "$1.tmp" && mv "$1.tmp" "$1"' _ {} \;
 
 # Stage 2: Serve
 FROM nginx:alpine
 COPY --from=build /app/dist/frontend/browser /usr/share/nginx/html
+RUN chmod 755 /usr/share/nginx/html && chown -R nginx:nginx /usr/share/nginx/html
+
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 EXPOSE 80
