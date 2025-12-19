@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-admin-users',
@@ -155,7 +156,7 @@ export class AdminUsersComponent implements OnInit {
 
   loadUsers() {
     const token = localStorage.getItem('auth_token');
-    this.http.get('http://localhost:3000/admin/users', { headers: { Authorization: `Bearer ${token}` } })
+    this.http.get('${environment.apiUrl}/admin/users', { headers: { Authorization: `Bearer ${token}` } })
       .subscribe({
         next: (res: any) => this.users = res,
         error: (err) => console.error('Failed to load users', err)

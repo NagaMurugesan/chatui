@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-admin-sso',
@@ -142,7 +143,7 @@ export class AdminSSOComponent implements OnInit {
     this.message = '';
     this.error = '';
     const token = localStorage.getItem('auth_token');
-    this.http.post('http://localhost:3000/admin/sso-metadata',
+    this.http.post('${environment.apiUrl}/admin/sso-metadata',
       { url: this.metadataUrl },
       { headers: { Authorization: `Bearer ${token}` } }
     ).subscribe({
@@ -160,7 +161,7 @@ export class AdminSSOComponent implements OnInit {
     this.message = '';
     this.error = '';
     const token = localStorage.getItem('auth_token');
-    this.http.post('http://localhost:3000/admin/sso-config',
+    this.http.post('${environment.apiUrl}/admin/sso-config',
       { entryPoint: this.entryPoint, issuer: this.issuer, cert: this.cert },
       { headers: { Authorization: `Bearer ${token}` } }
     ).subscribe({
@@ -182,7 +183,7 @@ export class AdminSSOComponent implements OnInit {
 
   loadConfigs() {
     const token = localStorage.getItem('auth_token');
-    this.http.get('http://localhost:3000/admin/sso-config', { headers: { Authorization: `Bearer ${token}` } })
+    this.http.get('${environment.apiUrl}/admin/sso-config', { headers: { Authorization: `Bearer ${token}` } })
       .subscribe({
         next: (res: any) => this.configs = res,
         error: (err) => console.error('Failed to load configs', err)
@@ -193,7 +194,7 @@ export class AdminSSOComponent implements OnInit {
     if (!confirm('Are you sure you want to delete this configuration?')) return;
 
     const token = localStorage.getItem('auth_token');
-    this.http.delete(`http://localhost:3000/admin/sso-config/${id}`, { headers: { Authorization: `Bearer ${token}` } })
+    this.http.delete(`${environment.apiUrl}/admin/sso-config/${id}`, { headers: { Authorization: `Bearer ${token}` } })
       .subscribe({
         next: () => {
           this.loadConfigs();
@@ -209,7 +210,7 @@ export class AdminSSOComponent implements OnInit {
 
   activateConfig(id: string) {
     const token = localStorage.getItem('auth_token');
-    this.http.post(`http://localhost:3000/admin/sso-config/${id}/activate`, {}, { headers: { Authorization: `Bearer ${token}` } })
+    this.http.post(`${environment.apiUrl}/admin/sso-config/${id}/activate`, {}, { headers: { Authorization: `Bearer ${token}` } })
       .subscribe({
         next: () => {
           this.loadConfigs();

@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { AuthService } from './auth.service';
+import { environment } from '../../environments/environment';
 
 export interface Chat {
   chatId: string;
@@ -22,7 +23,7 @@ export interface Message {
   providedIn: 'root'
 })
 export class ChatService {
-  private apiUrl = 'http://localhost:3000/chats';
+  private apiUrl = `${environment.apiUrl}/chats`;
 
   constructor(private http: HttpClient, private authService: AuthService) { }
 

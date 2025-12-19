@@ -1,17 +1,36 @@
 version: '3.8'
 
 services:
-  frontend:
-    build: ./frontend
+  nginx-proxy:
+    build: ./nginx-proxy
     ports:
-      - "4200:80"
+      - "443:443"
+      - "80:80"
+    environment:
+      - DOMAIN=${DOMAIN:-localhost}
+      - SSL_CERT_PATH=${SSL_CERT_PATH:-/etc/nginx/certs/localhost.crt}
+      - SSL_KEY_PATH=${SSL_KEY_PATH:-/etc/nginx/certs/localhost.key}
+    volumes:
+      - ./certs:/etc/nginx/certs:ro
+    depends_on:
+      - frontend
+      - backend
+      - dynamodb-admin
+      - keycloak
+      - mcp-server
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        - API_URL=${API_URL:-/api}
+    # Port removed - accessed only through nginx-proxy
     depends_on:
       - backend
 
   backend:
     build: ./backend
-    ports:
-      - "3000:3000"
+    # Port removed - accessed only through nginx-proxy
     environment:
       - PORT=3000
       - AWS_REGION=us-east-1
@@ -22,6 +41,7 @@ services:
       - JWT_SECRET=local_secret
       - OLLAMA_HOST=http://host.docker.internal:11434
       - OLLAMA_MODEL=llama3
+      - FRONTEND_URL=${FRONTEND_URL:-https://localhost}
     depends_on:
       - dynamodb-local
     volumes:
@@ -29,16 +49,14 @@ services:
 
   dynamodb-local:
     image: amazon/dynamodb-local
-    ports:
-      - "8000:8000"
+    # Port removed - internal service only
     command: "-jar DynamoDBLocal.jar -sharedDb -dbPath ."
     volumes:
       - dynamodb_data:/home/dynamodblocal
 
   dynamodb-admin:
     image: aaronshaf/dynamodb-admin
-    ports:
-      - "8001:8001"
+    # Port removed - accessed only through nginx-proxy
     environment:
       - DYNAMO_ENDPOINT=http://dynamodb-local:8000
       - AWS_REGION=us-east-1
@@ -47,8 +65,7 @@ services:
 
   postgres:
     image: ankane/pgvector:latest
-    ports:
-      - "5435:5432"
+    # Port removed - internal service only
     environment:
       - POSTGRES_USER=admin
       - POSTGRES_PASSWORD=admin
@@ -59,8 +76,7 @@ services:
 
   mcp-server:
     build: ./mcp-server
-    ports:
-      - "8002:8000"
+    # Port removed - accessed only through nginx-proxy
     environment:
       - OLLAMA_HOST=http://host.docker.internal:11434
       - POSTGRES_HOST=postgres
@@ -74,8 +90,7 @@ services:
 
   keycloak:
     image: quay.io/keycloak/keycloak:23.0.0
-    ports:
-      - "8080:8080"
+    # Port removed - accessed only through nginx-proxy
     environment:
       - KEYCLOAK_ADMIN=admin
       - KEYCLOAK_ADMIN_PASSWORD=admin

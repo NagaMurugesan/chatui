@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-admin-secrets',
@@ -50,7 +51,7 @@ export class AdminSecretsComponent {
     this.message = '';
     this.error = '';
     const token = localStorage.getItem('auth_token');
-    this.http.post('http://localhost:3000/admin/secrets',
+    this.http.post('${environment.apiUrl}/admin/secrets',
       { name: this.name, value: this.value },
       { headers: { Authorization: `Bearer ${token}` } }
     ).subscribe({

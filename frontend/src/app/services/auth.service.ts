@@ -2,12 +2,13 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { Router } from '@angular/router';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = 'http://localhost:3000/auth';
+  private apiUrl = `${environment.apiUrl}/auth`;
   private tokenKey = 'auth_token';
   private userIdKey = 'user_id';
   private userNameKey = 'user_name';
@@ -25,14 +26,21 @@ export class AuthService {
   }
 
   login(email: string, password: string): Observable<any> {
+    console.log('[AuthService] Login attempt:', { email, url: `${this.apiUrl}/login` });
     return this.http.post<{ token: string, userId: string, name: string, role: string }>(`${this.apiUrl}/login`, { email, password })
       .pipe(
         tap(response => {
+          console.log('[AuthService] Login successful:', response);
           localStorage.setItem(this.tokenKey, response.token);
           localStorage.setItem(this.userIdKey, response.userId);
           localStorage.setItem(this.userNameKey, response.name);
           if (response.role) localStorage.setItem('user_role', response.role);
           this.isAuthenticated$.next(true);
+        }),
+        tap({
+          error: (error) => {
+            console.error('[AuthService] Login failed:', error);
+          }
         })
       );
   }

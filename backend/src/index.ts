@@ -10,7 +10,24 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT || 3000;
 
-app.use(cors());
+// Trust proxy headers (for ALB/Nginx)
+app.set('trust proxy', true);
+
+// CORS configuration with environment-based origins
+const allowedOrigins = process.env.FRONTEND_URL?.split(',') || ['http://localhost:4200', 'https://localhost'];
+app.use(cors({
+    origin: (origin, callback) => {
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    credentials: true
+}));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
