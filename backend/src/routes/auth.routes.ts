@@ -53,7 +53,10 @@ router.post('/register', async (req, res) => {
 router.post('/login', async (req, res) => {
     try {
         const { email, password } = req.body;
+        console.log(`[Login Attempt] Email: ${email}`);
+
         if (!email || !password) {
+            console.log('[Login Failed] Missing fields');
             return res.status(400).json({ error: 'Email and password are required' });
         }
 
@@ -65,15 +68,22 @@ router.post('/login', async (req, res) => {
         const user = userResult.Item;
 
         if (!user) {
+            console.log('[Login Failed] User not found in DynamoDB');
             return res.status(400).json({ error: 'Invalid credentials' });
         }
 
+        console.log(`[Login Info] User found: ${user.email}, AuthType: ${user.authType}`);
+
         if (user.authType === 'sso') {
+            console.log('[Login Failed] User configured for SSO');
             return res.status(400).json({ error: 'Please use SSO login' });
         }
 
         const isMatch = await bcrypt.compare(password, user.password);
+        console.log(`[Login Info] Password Match: ${isMatch}`);
+
         if (!isMatch) {
+            console.log('[Login Failed] Password mismatch');
             return res.status(400).json({ error: 'Invalid credentials' });
         }
 
