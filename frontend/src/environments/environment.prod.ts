@@ -1,4 +1,4 @@
 export const environment = {
     production: true,
-    apiUrl: '${API_URL}' // Will be replaced at build time
+    apiUrl: '/api'  // Relative path - nginx-proxy/ALB will route to backend
 };

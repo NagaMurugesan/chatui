@@ -12,10 +12,6 @@ COPY . .
 # Build the Angular app
 RUN npm run build
 
-# Replace placeholder with actual API URL in built files
-# Alpine Linux compatible version
-RUN find /app/dist -type f \( -name "*.js" -o -name "*.html" \) -exec sh -c 'sed "s|\${API_URL}|'"${API_URL}"'|g" "$1" > "$1.tmp" && mv "$1.tmp" "$1"' _ {} \;
-
 # Stage 2: Serve
 FROM nginx:alpine
 COPY --from=build /app/dist/frontend/browser /usr/share/nginx/html
