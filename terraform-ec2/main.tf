@@ -17,6 +17,14 @@ variable "key_name" { description = "Name of existing SSH Key Pair" }
 variable "instance_type" { default = "g6.xlarge" } # GPU Instance
 variable "app_name" { default = "gravity-chat-ec2" }
 variable "my_ip" { description = "Your IP address for SSH access (CIDR)" }
+variable "domain_name" { 
+  description = "Domain name for the application (e.g., chat.example.com)"
+  type        = string
+}
+variable "route53_zone_id" {
+  description = "Route53 hosted zone ID for DNS validation"
+  type        = string
+}
 
 # --- VPC & Networking ---
 resource "aws_vpc" "main" {
@@ -34,6 +42,17 @@ resource "aws_subnet" "public" {
   cidr_block              = "10.0.1.0/24"
   map_public_ip_on_launch = true
   availability_zone       = "${var.aws_region}a"
+  
+  tags = { Name = "${var.app_name}-subnet-1" }
+}
+
+resource "aws_subnet" "public_2" {
+  vpc_id                  = aws_vpc.main.id
+  cidr_block              = "10.0.2.0/24"
+  map_public_ip_on_launch = true
+  availability_zone       = "${var.aws_region}b"
+  
+  tags = { Name = "${var.app_name}-subnet-2" }
 }
 
 resource "aws_route_table" "public" {
@@ -49,9 +68,14 @@ resource "aws_route_table_association" "public" {
   route_table_id = aws_route_table.public.id
 }
 
+resource "aws_route_table_association" "public_2" {
+  subnet_id      = aws_subnet.public_2.id
+  route_table_id = aws_route_table.public.id
+}
+
 # --- Security Group ---
 resource "aws_security_group" "sg" {
-  name   = "${var.app_name}-sg"
+  name   = "${var.app_name}-ec2-sg"
   vpc_id = aws_vpc.main.id
 
   # SSH
@@ -62,28 +86,12 @@ resource "aws_security_group" "sg" {
     cidr_blocks = [var.my_ip] 
   }
 
-  # Frontend (Angular)
+  # HTTP from ALB only
   ingress {
-    from_port   = 4200
-    to_port     = 4200
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  # Backend API
-  ingress {
-    from_port   = 3000
-    to_port     = 3000
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  # DynamoDB Admin (Optional)
-  ingress {
-    from_port   = 8001
-    to_port     = 8001
-    protocol    = "tcp"
-    cidr_blocks = [var.my_ip]
+    from_port       = 80
+    to_port         = 80
+    protocol        = "tcp"
+    security_groups = [aws_security_group.alb_sg.id]
   }
 
   # Egress (Allow all)
@@ -92,6 +100,10 @@ resource "aws_security_group" "sg" {
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
+  }
+  
+  tags = {
+    Name = "${var.app_name}-ec2-sg"
   }
 }
 
@@ -127,15 +139,34 @@ resource "aws_instance" "app_server" {
   }
 }
 
+# --- Route53 Record ---
+resource "aws_route53_record" "app" {
+  zone_id = var.route53_zone_id
+  name    = var.domain_name
+  type    = "A"
+
+  alias {
+    name                   = aws_lb.app.dns_name
+    zone_id                = aws_lb.app.zone_id
+    evaluate_target_health = true
+  }
+}
+
 # --- Outputs ---
 output "public_ip" {
   value = aws_instance.app_server.public_ip
 }
 
-output "ssh_command" {
-  value = "ssh -i ${var.key_name}.pem ubuntu@${aws_instance.app_server.public_ip}"
+output "alb_dns_name" {
+  value       = aws_lb.app.dns_name
+  description = "ALB DNS name"
 }
 
-output "frontend_url" {
-  value = "http://${aws_instance.app_server.public_ip}:4200"
+output "application_url" {
+  value       = "https://${var.domain_name}"
+  description = "Application URL (after DNS propagation)"
+}
+
+output "ssh_command" {
+  value = "ssh -i ${var.key_name}.pem ec2-user@${aws_instance.app_server.public_ip}"
 }

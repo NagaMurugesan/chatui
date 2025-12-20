@@ -3,7 +3,7 @@ set -ex
 
 # 1. System Updates & Basic Tools
 dnf update -y
-dnf install -y git curl wget unzip tar gzip
+dnf install -y git  wget unzip tar gzip
 
 # 2. Install Docker
 # Amazon Linux 2023 uses standard packages for Docker
@@ -20,7 +20,7 @@ chmod +x $DOCKER_CONFIG/docker-compose
 
 # Install Docker Buildx (Required for 'docker compose build')
 # AL2023 'docker' package might miss this or have an old version.
-curl -SL https://github.com/docker/buildx/releases/download/v0.11.2/buildx-v0.11.2.linux-amd64 -o $DOCKER_CONFIG/docker-buildx
+curl -SL https://github.com/docker/buildx/releases/download/v0.30.1/buildx-v0.30.1.linux-amd64 -o $DOCKER_CONFIG/docker-buildx
 chmod +x $DOCKER_CONFIG/docker-buildx
 
 # 3. Nvidia Container Toolkit
@@ -45,34 +45,24 @@ git clone https://github.com/NagaMurugesan/chatui.git app
 cd app
 chown -R ec2-user:ec2-user /home/ec2-user/app
 
-# Create .env file
-cat <<EOT > .env
-PORT=3000
-AWS_REGION=us-east-1
-DYNAMODB_ENDPOINT=http://dynamodb-local:8000
-TABLE_CHATS=ChatSessions
-TABLE_MESSAGES=ChatMessages
-TABLE_USERS=Users
-JWT_SECRET=production_secret_change_me
-OLLAMA_HOST=http://host.docker.internal:11434
-OLLAMA_MODEL=mistral
-POSTGRES_HOST=postgres
-POSTGRES_USER=admin
-POSTGRES_PASSWORD=admin
-POSTGRES_DB=mcpdb
-EOT
+# Copy production nginx config (HTTP only - ALB handles SSL)
+cp nginx-proxy/nginx-http.conf.template nginx-proxy/nginx.conf.template
 
-# 6. Start Application
+# 6. Start Application with production environment
 # Enable "host.docker.internal" mapping in docker-compose.yml for containers to reach host Ollama
 sed -i '/    environment:/i \    extra_hosts:\n      - "host.docker.internal:host-gateway"' docker-compose.yml
 
-# Run as ec2-user context or use full path to docker networking if root
-# Executing as root here (User Data runs as root), but Docker socket is available
-docker compose up -d --build
+# Run with production environment file
+docker compose --env-file .env.production up -d --build
 
 # 7. Pull LLM Model
 # Wait for Ollama to be ready
 sleep 10
 ollama pull mistral
+
+# 8. Initialize DynamoDB tables
+sleep 5
+chmod +x init-dynamodb.sh
+./init-dynamodb.sh
 
 echo "Deployment Complete"

@@ -1,0 +1,12 @@
+# Example Terraform variables file
+# Copy this to terraform.tfvars and fill in your values
+
+aws_region  = "us-east-1"
+key_name    = "your-ssh-key-name"  # Name of your existing EC2 key pair
+my_ip       = "YOUR.IP.ADDRESS/32" # Your IP for SSH access
+domain_name = "chat.example.com"   # Your domain name
+route53_zone_id = "Z1234567890ABC" # Your Route53 hosted zone ID
+
+# Optional: Change instance type if needed
+# instance_type = "g6.xlarge"  # Default GPU instance
+# app_name = "gravity-chat-ec2"  # Default app name
