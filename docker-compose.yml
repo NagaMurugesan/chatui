@@ -41,7 +41,7 @@ services:
       - JWT_SECRET=local_secret
       - OLLAMA_HOST=http://host.docker.internal:11434
       - OLLAMA_MODEL=llama3
-      - FRONTEND_URL=${FRONTEND_URL:-https://localhost}
+      - FRONTEND_URL=${FRONTEND_URL:-*}
     depends_on:
       - dynamodb-local
     volumes:
