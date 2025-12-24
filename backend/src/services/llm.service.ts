@@ -4,7 +4,7 @@ export interface Message {
 }
 
 export class LLMService {
-    private mcpHost = process.env.MCP_HOST || 'http://mcp-server:8000';
+    private mcpHost = process.env.MCP_HOST || 'http://localhost:8002';
 
     async generateResponse(history: Message[], userMessage: string, model: string = 'llama3'): Promise<string> {
         try {
