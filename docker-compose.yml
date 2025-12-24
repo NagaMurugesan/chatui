@@ -3,9 +3,7 @@ version: '3.8'
 services:
   nginx-proxy:
     build: ./nginx-proxy
-    ports:
-      - "443:443"
-      - "80:80"
+    network_mode: "host"
     environment:
       - DOMAIN=${DOMAIN:-localhost}
       - SSL_CERT_PATH=${SSL_CERT_PATH:-/etc/nginx/certs/localhost.crt}
@@ -24,22 +22,22 @@ services:
       context: ./frontend
       args:
         - API_URL=${API_URL:-/api}
-    # Port removed - accessed only through nginx-proxy
+    network_mode: "host"
     depends_on:
       - backend
 
   backend:
     build: ./backend
-    # Port removed - accessed only through nginx-proxy
+    network_mode: "host"
     environment:
       - PORT=3000
       - AWS_REGION=us-east-1
-      - DYNAMODB_ENDPOINT=http://dynamodb-local:8000
+      - DYNAMODB_ENDPOINT=http://localhost:8000
       - TABLE_CHATS=ChatSessions
       - TABLE_MESSAGES=ChatMessages
       - TABLE_USERS=Users
       - JWT_SECRET=local_secret
-      - OLLAMA_HOST=http://ollama:11434
+      - OLLAMA_HOST=http://localhost:11434
       - OLLAMA_MODEL=llama3
       - FRONTEND_URL=${FRONTEND_URL:-*}
     depends_on:
@@ -49,25 +47,25 @@ services:
 
   dynamodb-local:
     image: amazon/dynamodb-local
-    ports:
-      - "8000:8000"
+    network_mode: "host"
+    # Port 8000 is native to this image
     command: "-jar DynamoDBLocal.jar -sharedDb -dbPath ."
     volumes:
       - dynamodb_data:/home/dynamodblocal
 
   dynamodb-admin:
     image: aaronshaf/dynamodb-admin
-    # Port removed - accessed only through nginx-proxy
+    network_mode: "host"
     environment:
-      - DYNAMO_ENDPOINT=http://dynamodb-local:8000
+      - DYNAMO_ENDPOINT=http://localhost:8000
       - AWS_REGION=us-east-1
+      - PORT=8001
     depends_on:
       - dynamodb-local
 
   postgres:
     image: ankane/pgvector:latest
-    ports:
-      - "5500:5432"
+    network_mode: "host"
     environment:
       - POSTGRES_USER=admin
       - POSTGRES_PASSWORD=admin
@@ -78,63 +76,45 @@ services:
 
   mcp-server:
     build: ./mcp-server
+    network_mode: "host"
+    command: [ "uvicorn", "server:app", "--host", "0.0.0.0", "--port", "8002" ]
     environment:
-      - OLLAMA_HOST=http://ollama:11434
-      - POSTGRES_HOST=postgres
+      - OLLAMA_HOST=http://localhost:11434
+      - POSTGRES_HOST=localhost
       - POSTGRES_PORT=5432
       - POSTGRES_USER=admin
       - POSTGRES_PASSWORD=admin
       - POSTGRES_DB=mcpdb
       - HTTP_PROXY=${HTTP_PROXY:-http://your-proxy:port}
       - HTTPS_PROXY=${HTTPS_PROXY:-http://your-proxy:port}
-      - NO_PROXY=${NO_PROXY:-localhost,127.0.0.1,postgres,dynamodb-local,ollama}
-      - N8N_HOST=http://n8n:5678
+      - NO_PROXY=${NO_PROXY:-localhost,127.0.0.1}
+      - N8N_HOST=http://localhost:5678
     depends_on:
       - postgres
       - n8n
-      - ollama
     volumes:
       - ./mcp-server:/app
 
-  ollama:
-    image: ollama/ollama:latest
-    ports:
-      - "11434:11434"
-    volumes:
-      - ollama_data:/root/.ollama
-    environment:
-      - HTTP_PROXY=${HTTP_PROXY}
-      - HTTPS_PROXY=${HTTPS_PROXY}
-      - NO_PROXY=${NO_PROXY}
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [ gpu ]
-
   n8n:
     image: docker.n8n.io/n8nio/n8n
-    ports:
-      - "5678:5678"
+    network_mode: "host"
     environment:
-      - N8N_HOST=n8n
+      - N8N_HOST=localhost
       - N8N_PORT=5678
       - N8N_PROTOCOL=http
-      - WEBHOOK_URL=https://localhost/n8n/
-      - N8N_EDITOR_BASE_URL=https://localhost/n8n/
+      - WEBHOOK_URL=http://localhost:5678/
+      - N8N_EDITOR_BASE_URL=http://localhost:5678/
       - N8N_BASIC_AUTH_ACTIVE=false
     volumes:
       - n8n_data:/home/node/.n8n
 
   keycloak:
     image: quay.io/keycloak/keycloak:23.0.0
-    ports:
-      - "8080:8080"
+    network_mode: "host"
     environment:
       - KEYCLOAK_ADMIN=admin
       - KEYCLOAK_ADMIN_PASSWORD=admin
+      - KEYCLOAK_HTTP_PORT=8080
     command: start-dev --import-realm
     volumes:
       - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json

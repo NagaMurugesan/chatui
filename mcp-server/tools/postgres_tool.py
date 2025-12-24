@@ -4,6 +4,7 @@ import os
 class PostgresTool:
     def __init__(self):
         self.host = os.getenv("POSTGRES_HOST", "postgres")
+        self.port = os.getenv("POSTGRES_PORT", "5432")
         self.user = os.getenv("POSTGRES_USER", "admin")
         self.password = os.getenv("POSTGRES_PASSWORD", "admin")
         self.dbname = os.getenv("POSTGRES_DB", "mcpdb")
@@ -11,6 +12,7 @@ class PostgresTool:
     def get_connection(self):
         return psycopg2.connect(
             host=self.host,
+            port=self.port,
             user=self.user,
             password=self.password,
             dbname=self.dbname

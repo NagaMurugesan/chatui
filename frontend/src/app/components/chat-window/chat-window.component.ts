@@ -26,7 +26,9 @@ export class ChatWindowComponent implements OnInit, AfterViewChecked {
     { value: 'mistral-nemo', label: 'Mistral NeMo' },
     { value: 'gemma2:9b', label: 'Gemma 2 9B' },
     { value: 'llama3.2', label: 'Llama 3.2' },
-    { value: 'llama3', label: 'Llama 3' }
+    { value: 'llama3', label: 'Llama 3' },
+    { value: 'deepseek-r1', label: 'DeepSeek R1' },
+    { value: 'qwen2.5', label: 'Qwen 2.5' }
   ];
 
   @ViewChild('scrollContainer') private scrollContainer!: ElementRef;
